@@ -1,0 +1,39 @@
+#!/bin/sh
+set -e
+
+[ -d /data ] ||
+  mkdir -p /data
+
+# Config the data file structure for graphite
+[ -d /data/graphite/storage ] || {
+  mkdir -p /data/graphite/storage
+  chmod 0775 /data/graphite/storage
+}
+[ -d /data/graphite/storage/whisper ] || {
+  mkdir -p /data/graphite/storage/whisper
+  chmod 0755 /data/graphite/storage/whisper
+}
+[ -d /data/graphite/storage/rrd ] || {
+  mkdir -p /data/graphite/storage/rrd
+  chmod 0755 /data/graphite/storage/rrd
+}
+[ -d /data/graphite/storage/log/webapp ] || {
+  mkdir -p /data/graphite/storage/log/webapp
+  chmod 0755 /data/graphite/storage/log/webapp
+}
+[ -f /data/graphite/storage/graphite.db ] || {
+  touch /data/graphite/storage/graphite.db
+  chmod 0664 /data/graphite/storage/graphite.db
+}
+[ -f /data/graphite/storage/index ] ||
+  touch /data/graphite/storage/index
+cd /opt/graphite/webapp/graphite && python manage.py syncdb --noinput && cd
+
+# config the data file structure for elasticsearch
+[ -d /data/elasticsearch ] || {
+  mkdir -p /data/elasticsearch
+  chown elasticsearch:elasticsearch /data/elasticsearch
+}
+
+# Run supervisor
+/usr/bin/supervisord
